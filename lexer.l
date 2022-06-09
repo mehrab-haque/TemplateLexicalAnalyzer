@@ -1,6 +1,12 @@
+%option noyywrap
+
 %{
-#include <stdio.h>
-#include<string.h>
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include "SymbolTable.h"
+
+using namespace std;
 
 int lineCount=1;
 FILE *logFile,*tokenFile;
@@ -18,17 +24,21 @@ FILE *logFile,*tokenFile;
     free(upperCaseKeyword);
 }
 
+[0-9]+ {
+    //integer constant
+    fprintf(logFile,"Line no %d: Token <CONST_INT> Lexeme %s found\n\n",lineCount,yytext);
+    fprintf(tokenFile,"<CONST_INT, %s> ",yytext);
+}
+
 \n {lineCount++;}
 %%
   
-int yywrap(){}
 
 int main(int argc, char *argv[]){
     yyin = fopen(argv[1], "r");
     logFile=fopen(argv[2], "w");
     tokenFile=fopen(argv[3], "w");
     yylex();
-    //fprintf(logFile,"lines  %d", linecount);
     fclose(yyin);
     fclose(logFile);
     fclose(tokenFile);

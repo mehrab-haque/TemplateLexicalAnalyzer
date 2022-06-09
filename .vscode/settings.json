@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "symbolinfo.h": "c",
+        "cstdlib": "cpp",
+        "sstream": "cpp"
+    }
+}

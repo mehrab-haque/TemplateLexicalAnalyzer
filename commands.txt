@@ -1,1 +1,1 @@
-flex lexer.l; gcc lex.yy.c; ./a.out sample_input4.txt log.txt tokens.txt
+flex lexer.l; g++ lex.yy.c; ./a.out sample_input4.txt log.txt tokens.txt
