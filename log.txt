@@ -1,9 +1,6 @@
-Line no 1: Token <STRING> Lexeme "saaaaa \	 
-	kkjkjkj " found --> <STRING, saaaaa 	kkjkjkj > 
+Error at line no 1: Empty character 
 
-Error at line no 4: Unterminated String "asasasas  
+Error at line no 1: Unrecognized character : ` 
 
-Line no 4: Token <ID> Lexeme asasasas found
-
-Line no 5: Token <ID> Lexeme asasas found
-
+Total lines: 1
+Total errors: 2

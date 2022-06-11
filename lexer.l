@@ -13,12 +13,16 @@
 
 using namespace std;
 
-int lineCount=1;
+int lineCount=1,tmpLineCount,errorCount=0;
 FILE *logFile,*tokenFile;
 string stringBody;
 string logStringBody;
 string commentBody;
 %}
+
+Integer [0-9]+
+Float [0-9]*([.][0-9]+)?([eE][-+]?[0-9]+)?
+SingleQuot \'
   
 %%
 (if|for|do|int|float|void|switch|default|else|while|break|char|double|return|case|continue) {
@@ -32,22 +36,70 @@ string commentBody;
     free(upperCaseKeyword);
 }
 
-[0-9]+ {
+[a-zA-Z_][a-zA-Z0-9_]* {
+    fprintf(logFile,"Line no %d: Token <ID> Lexeme %s found\n\n",lineCount,yytext);
+    fprintf(tokenFile,"<ID, %s> ",yytext);
+}
+
+[0-9]+[a-zA-Z_][a-zA-Z0-9_]* {
+    //Invalid prefix before an id
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Invalid prefix before ID : %s \n\n",lineCount,yytext);
+}
+
+{Integer} {
     //integer constant
     fprintf(logFile,"Line no %d: Token <CONST_INT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_INT, %s> ",yytext);
 }
 
-[0-9]*([.][0-9]+)?([eE][-+]?[0-9]+)? {
+{Float} {
     //floating constant
     fprintf(logFile,"Line no %d: Token <CONST_FLOAT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_FLOAT, %s> ",yytext);
 }
 
+[0-9]*([.][0-9]*)([.][0-9]*)+ {
+    //Too many decimal point error
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Too many decimal points : %s \n\n",lineCount,yytext);
+}
+
+[0-9]*([.][0-9]+)?([eE][-+]?([0-9]*[.])+[0-9]+)|[0-9]*([.][0-9]+)?([eE][-+]?[0-9]+)?([.][0-9]*)+ {
+    //Illed formed number
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Ill formed number : %s \n\n",lineCount,yytext);
+}
+
+({Integer}|{Float})[a-zA-Z]+ {
+    //Invalid suffix after a numeric value
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Invalid suffix after number : %s \n\n",lineCount,yytext);
+}
+
+\'\' {
+    //Emply character constant error
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Empty character \n\n",lineCount);
+}
+
+\'\\\'|\'.|\'\\[ntafrbv0\'\\] {
+    //Unfinished character
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Unfinished character : %s \n\n",lineCount,yytext);
+}
+
+
 \'.\' {
     //character constant
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found  --> <CONST_CHAR, %c> \n\n",lineCount,yytext,yytext[1]);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",yytext[1]);
+}
+
+{SingleQuot} {
+    //Empty character
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Empty character constant \n\n",lineCount);
 }
 
 [']\\[ntafrbv0\'\\]['] {
@@ -66,6 +118,14 @@ string commentBody;
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found --> <CONST_CHAR, %c>\n\n",lineCount,yytext,ch);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",ch);
 }
+
+\'.(.)+\' {
+    //Invalid character
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Invalid character : %s \n\n",lineCount,yytext);
+}
+
+
 
 ("+"|"-") {
     fprintf(logFile,"Line no %d: Token <ADDOP> Lexeme %s found\n\n",lineCount,yytext);
@@ -142,35 +202,40 @@ string commentBody;
     fprintf(tokenFile,"<SEMICOLON, %s> ",yytext);
 }
 
-
-[a-zA-Z_][a-zA-Z0-9_]* {
-    fprintf(logFile,"Line no %d: Token <ID> Lexeme %s found\n\n",lineCount,yytext);
-    fprintf(tokenFile,"<ID, %s> ",yytext);
-}
-
 "//" {
     commentBody="";
+    tmpLineCount=lineCount;
 	BEGIN COMMENT_SINGLE_LINE; 
+}
+
+"/*" {
+    commentBody="";
+    tmpLineCount=lineCount;
+	BEGIN COMMENT_MULTI_LINE; 
 }
 
 [\"] {
     stringBody="";
     logStringBody="";
+    tmpLineCount=lineCount;
 	BEGIN STRING; 
 }
 
 <STRING>"\\"(" "|\t)*[\n] {
     logStringBody+=yytext;
+    lineCount++;
 }
 
 <STRING>[\"] {
-    fprintf(logFile,"Line no %d: Token <STRING> Lexeme \"%s\" found --> <STRING, %s> \n\n",lineCount,logStringBody.c_str(),stringBody.c_str());
+    fprintf(logFile,"Line no %d: Token <STRING> Lexeme \"%s\" found --> <STRING, %s> \n\n",tmpLineCount,logStringBody.c_str(),stringBody.c_str());
     fprintf(tokenFile,"<STRING, %s> ",stringBody.c_str());
     BEGIN INITIAL; 
 }
 
 <STRING>[\n] {
+    errorCount++;
     fprintf(logFile,"Error at line no %d: Unterminated String \"%s \n\n",lineCount,stringBody.c_str());
+    lineCount++;
     BEGIN INITIAL; 
 }
 
@@ -199,10 +264,12 @@ string commentBody;
 }
 
 <COMMENT_SINGLE_LINE>[\n] {
+    lineCount++;
     BEGIN INITIAL; 
 }
 
 <COMMENT_SINGLE_LINE>"\\"(" "|\t)*[\n]  {
+    lineCount++;
     commentBody+=yytext;
 }
 
@@ -210,7 +277,29 @@ string commentBody;
     commentBody+=yytext;
 }
 
+<COMMENT_MULTI_LINE><<EOF>> {
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Unterminated Comment \"%s \n\n",tmpLineCount,commentBody.c_str()); 
+    return 0;
+}
+
+<COMMENT_MULTI_LINE>"*/"  {
+    BEGIN INITIAL; 
+}
+
+<COMMENT_MULTI_LINE>. {
+    commentBody+=yytext;
+}
+
+<COMMENT_MULTI_LINE>\n {lineCount++;}
+
 (" "|\t)* {}
+
+[`#~@$^&] {
+    //Unrecognized character
+    errorCount++;
+    fprintf(logFile,"Error at line no %d: Unrecognized character : %s \n\n",lineCount,yytext);
+}
 
 \n {lineCount++;}
 %%
@@ -221,6 +310,7 @@ int main(int argc, char *argv[]){
     logFile=fopen(argv[2], "w");
     tokenFile=fopen(argv[3], "w");
     yylex();
+    fprintf(logFile,"Total lines: %d\nTotal errors: %d",lineCount,errorCount);
     fclose(yyin);
     fclose(logFile);
     fclose(tokenFile);
