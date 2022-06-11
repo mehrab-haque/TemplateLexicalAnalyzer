@@ -97,6 +97,7 @@ bool SymbolTable::insertSymbol(string name,string type){
 	bool isInserted=this->currentScope->insertSymbol(newSymbol);
 	if(!isInserted)delete newSymbol;
 	return isInserted;
+	return true;
 }
 
 void SymbolTable::exitScope(){

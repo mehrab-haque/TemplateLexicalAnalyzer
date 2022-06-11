@@ -18,6 +18,17 @@ FILE *logFile,*tokenFile;
 string stringBody;
 string logStringBody;
 string commentBody;
+SymbolTable *symbolTable;
+
+string charPointerToString( char* buf) {
+    int max=strlen(buf);
+    size_t len = 0;
+    while( (len < max) && (buf[ len ] != '\0') ) {
+        len++;
+    }
+    return string( buf, len );
+}
+
 %}
 
 Integer [0-9]+
@@ -39,6 +50,8 @@ SingleQuot \'
 [a-zA-Z_][a-zA-Z0-9_]* {
     fprintf(logFile,"Line no %d: Token <ID> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<ID, %s> ",yytext);
+    symbolTable->insertSymbol(charPointerToString(yytext),"ID");
+    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
 }
 
 [0-9]+[a-zA-Z_][a-zA-Z0-9_]* {
@@ -51,12 +64,16 @@ SingleQuot \'
     //integer constant
     fprintf(logFile,"Line no %d: Token <CONST_INT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_INT, %s> ",yytext);
+    symbolTable->insertSymbol(charPointerToString(yytext),"CONST_INT");
+    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
 }
 
 {Float} {
     //floating constant
     fprintf(logFile,"Line no %d: Token <CONST_FLOAT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_FLOAT, %s> ",yytext);
+    symbolTable->insertSymbol(charPointerToString(yytext),"CONST_FLOAT");
+    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
 }
 
 [0-9]*([.][0-9]*)([.][0-9]*)+ {
@@ -94,6 +111,8 @@ SingleQuot \'
     //character constant
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found  --> <CONST_CHAR, %c> \n\n",lineCount,yytext,yytext[1]);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",yytext[1]);
+    symbolTable->insertSymbol(string(1,yytext[1]),"CONST_CHAR");
+    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
 }
 
 {SingleQuot} {
@@ -117,6 +136,8 @@ SingleQuot \'
     else if(yytext[2]=='\'')ch='\'';
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found --> <CONST_CHAR, %c>\n\n",lineCount,yytext,ch);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",ch);
+    symbolTable->insertSymbol(string(1,ch),"CONST_CHAR");
+    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
 }
 
 \'.(.)+\' {
@@ -175,11 +196,13 @@ SingleQuot \'
 ("{") {
     fprintf(logFile,"Line no %d: Token <LCURL> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<LCURL, %s> ",yytext);
+    symbolTable->enterScope();
 }
 
 ("}") {
     fprintf(logFile,"Line no %d: Token <RCURL> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<RCURL, %s> ",yytext);
+    symbolTable->exitScope();
 }
 
 ("[") {
@@ -309,6 +332,9 @@ int main(int argc, char *argv[]){
     yyin = fopen(argv[1], "r");
     logFile=fopen(argv[2], "w");
     tokenFile=fopen(argv[3], "w");
+
+    symbolTable=new SymbolTable(7);
+
     yylex();
     fprintf(logFile,"Total lines: %d\nTotal errors: %d",lineCount,errorCount);
     fclose(yyin);
