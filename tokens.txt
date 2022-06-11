@@ -1,1 +1,1 @@
-<INT> <INT> <CONST_INT, 2> <IF> <CONST_INT, 2> <INT> <CHAR> <RETURN> <CONST_INT, 0> 
+<STRING, saaaaa 	kkjkjkj > <ID, asasasas> <ID, asasas> 

@@ -2,6 +2,7 @@
     "files.associations": {
         "symbolinfo.h": "c",
         "cstdlib": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "iosfwd": "c"
     }
 }

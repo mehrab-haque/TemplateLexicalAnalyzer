@@ -1,8 +1,7 @@
-int main(){
-	int a=2;
-	if(a == 2){
-		int b;
-		char b;
-	}
-	return 0;
-}
+"saaaaa \	 
+	kkjkjkj "
+
+
+"asasasas 
+asasasas\
+asasas"
