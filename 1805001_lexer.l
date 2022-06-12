@@ -10,7 +10,7 @@
 #include<cstdio>
 #include<cstring>
 #include <string>
-#include "SymbolTable.h"
+#include "1805001_SymbolTable.h"
 
 using namespace std;
 
@@ -21,16 +21,6 @@ string logStringBody;
 string commentBody;
 SymbolTable *symbolTable;
 
-
-string charPointerToString( char* buf) {
-    int max=strlen(buf);
-    size_t len = 0;
-    while( (len < max) && (buf[ len ] != '\0') ) {
-        len++;
-    }
-    return string( buf, len );
-}
-
 %}
 
 Integer [0-9]+
@@ -40,10 +30,11 @@ SingleQuot \'
 %%
 (if|for|do|int|float|void|switch|default|else|while|break|char|double|return|case|continue) {
     //keywords
-    char *upperCaseKeyword=(char*)malloc(sizeof(char*)*strlen(yytext));
+    char *upperCaseKeyword=(char*)malloc(sizeof(char*)*(strlen(yytext)+1));
     int i;
     for(i=0;i<strlen(yytext);i++)
         upperCaseKeyword[i]=yytext[i]-32;
+    upperCaseKeyword[strlen(yytext)]='\0';
     fprintf(logFile, "Line no %d: Token<%s> Lexeme %s found\n\n",lineCount,upperCaseKeyword,yytext);
     fprintf(tokenFile,"<%s> ",upperCaseKeyword);
     free(upperCaseKeyword);
@@ -52,7 +43,7 @@ SingleQuot \'
 [a-zA-Z_][a-zA-Z0-9_]* {
     fprintf(logFile,"Line no %d: Token <ID> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<ID, %s> ",yytext);
-    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"ID");
+    bool isInserted=symbolTable->insertSymbol(string(yytext,strlen(yytext)),"ID");
     if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
     else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
@@ -67,7 +58,7 @@ SingleQuot \'
     //integer constant
     fprintf(logFile,"Line no %d: Token <CONST_INT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_INT, %s> ",yytext);
-    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"CONST_INT");
+    bool isInserted=symbolTable->insertSymbol(string(yytext,strlen(yytext)),"CONST_INT");
     if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
     else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
@@ -76,7 +67,7 @@ SingleQuot \'
     //floating constant
     fprintf(logFile,"Line no %d: Token <CONST_FLOAT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_FLOAT, %s> ",yytext);
-    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"CONST_FLOAT");
+    bool isInserted=symbolTable->insertSymbol(string(yytext,strlen(yytext)),"CONST_FLOAT");
     if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
     else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }

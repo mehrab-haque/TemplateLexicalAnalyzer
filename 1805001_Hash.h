@@ -1,7 +1,7 @@
 #ifndef HASH_H
 #define HASH_H
 
-#include "SymbolInfo.h"
+#include "1805001_SymbolInfo.h"
 #include <cstdlib>
 #include <sstream>
 

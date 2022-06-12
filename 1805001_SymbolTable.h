@@ -3,8 +3,8 @@
 
 #include <string>
 #include <sstream>
-#include "SymbolInfo.h"
-#include "ScopeTable.h"
+#include "1805001_SymbolInfo.h"
+#include "1805001_ScopeTable.h"
 
 class SymbolTable{
 	int bucketSize;

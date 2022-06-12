@@ -3,8 +3,8 @@
 
 #include <string>
 #include <sstream>
-#include "SymbolInfo.h"
-#include "Hash.h"
+#include "1805001_SymbolInfo.h"
+#include "1805001_Hash.h"
 
 class ScopeTable{
 	Hash *hash;
