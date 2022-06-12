@@ -525,7 +525,7 @@ char *yytext;
 
 #define COMMENT_MULTI_LINE 3
 
-#line 8 "lexer.l"
+#line 9 "lexer.l"
 #include<iostream>
 #include<cstdio>
 #include<cstring>
@@ -541,6 +541,7 @@ string logStringBody;
 string commentBody;
 SymbolTable *symbolTable;
 
+
 string charPointerToString( char* buf) {
     int max=strlen(buf);
     size_t len = 0;
@@ -550,7 +551,7 @@ string charPointerToString( char* buf) {
     return string( buf, len );
 }
 
-#line 554 "lex.yy.c"
+#line 555 "lex.yy.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -712,9 +713,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 38 "lexer.l"
+#line 40 "lexer.l"
 
-#line 718 "lex.yy.c"
+#line 719 "lex.yy.c"
 
 	if ( yy_init )
 		{
@@ -799,7 +800,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 39 "lexer.l"
+#line 41 "lexer.l"
 {
     //keywords
     char *upperCaseKeyword=(char*)malloc(sizeof(char*)*strlen(yytext));
@@ -813,17 +814,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 50 "lexer.l"
+#line 52 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <ID> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<ID, %s> ",yytext);
-    symbolTable->insertSymbol(charPointerToString(yytext),"ID");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"ID");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 57 "lexer.l"
+#line 60 "lexer.l"
 {
     //Invalid prefix before an id
     errorCount++;
@@ -832,29 +834,31 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 63 "lexer.l"
+#line 66 "lexer.l"
 {
     //integer constant
     fprintf(logFile,"Line no %d: Token <CONST_INT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_INT, %s> ",yytext);
-    symbolTable->insertSymbol(charPointerToString(yytext),"CONST_INT");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"CONST_INT");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 71 "lexer.l"
+#line 75 "lexer.l"
 {
     //floating constant
     fprintf(logFile,"Line no %d: Token <CONST_FLOAT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_FLOAT, %s> ",yytext);
-    symbolTable->insertSymbol(charPointerToString(yytext),"CONST_FLOAT");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"CONST_FLOAT");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 79 "lexer.l"
+#line 84 "lexer.l"
 {
     //Too many decimal point error
     errorCount++;
@@ -863,7 +867,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 85 "lexer.l"
+#line 90 "lexer.l"
 {
     //Illed formed number
     errorCount++;
@@ -872,7 +876,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 91 "lexer.l"
+#line 96 "lexer.l"
 {
     //Invalid suffix after a numeric value
     errorCount++;
@@ -881,7 +885,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 97 "lexer.l"
+#line 102 "lexer.l"
 {
     //Emply character constant error
     errorCount++;
@@ -890,7 +894,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 103 "lexer.l"
+#line 108 "lexer.l"
 {
     //Unfinished character
     errorCount++;
@@ -899,18 +903,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 110 "lexer.l"
+#line 115 "lexer.l"
 {
     //character constant
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found  --> <CONST_CHAR, %c> \n\n",lineCount,yytext,yytext[1]);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",yytext[1]);
-    symbolTable->insertSymbol(string(1,yytext[1]),"CONST_CHAR");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(string(1,yytext[1]),"CONST_CHAR");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%c already exists in the current scope table\n\n",yytext[1]);
 }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 118 "lexer.l"
+#line 124 "lexer.l"
 {
     //Empty character
     errorCount++;
@@ -919,7 +924,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 124 "lexer.l"
+#line 130 "lexer.l"
 {
     //character constant
     char ch;
@@ -935,13 +940,14 @@ YY_RULE_SETUP
     else if(yytext[2]=='\'')ch='\'';
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found --> <CONST_CHAR, %c>\n\n",lineCount,yytext,ch);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",ch);
-    symbolTable->insertSymbol(string(1,ch),"CONST_CHAR");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(string(1,ch),"CONST_CHAR");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%c already exists in the current scope table\n\n",ch);
 }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 143 "lexer.l"
+#line 150 "lexer.l"
 {
     //Invalid character
     errorCount++;
@@ -950,7 +956,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 151 "lexer.l"
+#line 158 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <ADDOP> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<ADDOP, %s> ",yytext);
@@ -958,7 +964,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 156 "lexer.l"
+#line 163 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <MULOP> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<MULOP, %s> ",yytext);
@@ -966,7 +972,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 161 "lexer.l"
+#line 168 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <INCOP> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<INCOP, %s> ",yytext);
@@ -974,7 +980,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 166 "lexer.l"
+#line 173 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <RELOP> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<RELOP, %s> ",yytext);
@@ -982,7 +988,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 171 "lexer.l"
+#line 178 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <ASSIGNOP> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<ASSIGNOP, %s> ",yytext);
@@ -990,7 +996,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 176 "lexer.l"
+#line 183 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <LOGICOP> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<LOGICOP, %s> ",yytext);
@@ -998,7 +1004,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 181 "lexer.l"
+#line 188 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <NOT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<NOT, %s> ",yytext);
@@ -1006,7 +1012,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 186 "lexer.l"
+#line 193 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <LPAREN> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<LPAREN, %s> ",yytext);
@@ -1014,7 +1020,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 191 "lexer.l"
+#line 198 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <RPAREN> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<RPAREN, %s> ",yytext);
@@ -1022,7 +1028,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 196 "lexer.l"
+#line 203 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <LCURL> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<LCURL, %s> ",yytext);
@@ -1031,7 +1037,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 202 "lexer.l"
+#line 209 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <RCURL> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<RCURL, %s> ",yytext);
@@ -1040,7 +1046,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 208 "lexer.l"
+#line 215 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <LTHIRD> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<LTHIRD, %s> ",yytext);
@@ -1048,7 +1054,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 213 "lexer.l"
+#line 220 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <RTHIRD> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<RTHIRD, %s> ",yytext);
@@ -1056,7 +1062,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 218 "lexer.l"
+#line 225 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <COMMA> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<COMMA, %s> ",yytext);
@@ -1064,7 +1070,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 223 "lexer.l"
+#line 230 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <SEMICOLON> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<SEMICOLON, %s> ",yytext);
@@ -1072,7 +1078,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 228 "lexer.l"
+#line 235 "lexer.l"
 {
     commentBody="";
     tmpLineCount=lineCount;
@@ -1081,7 +1087,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 234 "lexer.l"
+#line 241 "lexer.l"
 {
     commentBody="";
     tmpLineCount=lineCount;
@@ -1090,7 +1096,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 240 "lexer.l"
+#line 247 "lexer.l"
 {
     stringBody="";
     logStringBody="";
@@ -1100,7 +1106,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 247 "lexer.l"
+#line 254 "lexer.l"
 {
     logStringBody+=yytext;
     lineCount++;
@@ -1108,7 +1114,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 252 "lexer.l"
+#line 259 "lexer.l"
 {
     fprintf(logFile,"Line no %d: Token <STRING> Lexeme \"%s\" found --> <STRING, %s> \n\n",tmpLineCount,logStringBody.c_str(),stringBody.c_str());
     fprintf(tokenFile,"<STRING, %s> ",stringBody.c_str());
@@ -1117,7 +1123,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 258 "lexer.l"
+#line 265 "lexer.l"
 {
     errorCount++;
     fprintf(logFile,"Error at line no %d: Unterminated String \"%s \n\n",lineCount,stringBody.c_str());
@@ -1127,7 +1133,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 267 "lexer.l"
+#line 274 "lexer.l"
 {
     stringBody+=yytext;
     logStringBody+=yytext;
@@ -1135,7 +1141,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 272 "lexer.l"
+#line 279 "lexer.l"
 {
     //character constant
     char ch;
@@ -1155,7 +1161,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 289 "lexer.l"
+#line 296 "lexer.l"
 {
     lineCount++;
     BEGIN INITIAL; 
@@ -1163,7 +1169,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 294 "lexer.l"
+#line 301 "lexer.l"
 {
     lineCount++;
     commentBody+=yytext;
@@ -1171,13 +1177,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 299 "lexer.l"
+#line 306 "lexer.l"
 {
     commentBody+=yytext;
 }
 	YY_BREAK
 case YY_STATE_EOF(COMMENT_MULTI_LINE):
-#line 303 "lexer.l"
+#line 310 "lexer.l"
 {
     errorCount++;
     fprintf(logFile,"Error at line no %d: Unterminated Comment \"%s \n\n",tmpLineCount,commentBody.c_str()); 
@@ -1186,52 +1192,56 @@ case YY_STATE_EOF(COMMENT_MULTI_LINE):
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 309 "lexer.l"
+#line 316 "lexer.l"
 {
     BEGIN INITIAL; 
 }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 313 "lexer.l"
+#line 320 "lexer.l"
 {
     commentBody+=yytext;
 }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 317 "lexer.l"
+#line 324 "lexer.l"
 {lineCount++;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 319 "lexer.l"
+#line 326 "lexer.l"
 {}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 321 "lexer.l"
+#line 328 "lexer.l"
 {
     //Unrecognized character
     errorCount++;
     fprintf(logFile,"Error at line no %d: Unrecognized character : %s \n\n",lineCount,yytext);
 }
 	YY_BREAK
+case YY_STATE_EOF(INITIAL):
+case YY_STATE_EOF(STRING):
+case YY_STATE_EOF(COMMENT_SINGLE_LINE):
+#line 334 "lexer.l"
+{ 
+    return 0;
+}
+	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 327 "lexer.l"
+#line 338 "lexer.l"
 {lineCount++;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 328 "lexer.l"
+#line 339 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1231 "lex.yy.c"
-case YY_STATE_EOF(INITIAL):
-case YY_STATE_EOF(STRING):
-case YY_STATE_EOF(COMMENT_SINGLE_LINE):
-	yyterminate();
+#line 1245 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2119,7 +2129,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 328 "lexer.l"
+#line 339 "lexer.l"
 
   
 
@@ -2128,12 +2138,16 @@ int main(int argc, char *argv[]){
     logFile=fopen(argv[2], "w");
     tokenFile=fopen(argv[3], "w");
 
-    symbolTable=new SymbolTable(7);
+    symbolTable=new SymbolTable(11);
 
     yylex();
     fprintf(logFile,"Total lines: %d\nTotal errors: %d",lineCount,errorCount);
     fclose(yyin);
     fclose(logFile);
     fclose(tokenFile);
+
+    delete symbolTable;
+    yy_delete_buffer( YY_CURRENT_BUFFER );
+
     return 0;
 }

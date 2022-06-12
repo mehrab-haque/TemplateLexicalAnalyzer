@@ -1,5 +1,6 @@
 %option noyywrap
 
+
 %x STRING
 %x COMMENT_SINGLE_LINE
 %x COMMENT_MULTI_LINE
@@ -19,6 +20,7 @@ string stringBody;
 string logStringBody;
 string commentBody;
 SymbolTable *symbolTable;
+
 
 string charPointerToString( char* buf) {
     int max=strlen(buf);
@@ -50,8 +52,9 @@ SingleQuot \'
 [a-zA-Z_][a-zA-Z0-9_]* {
     fprintf(logFile,"Line no %d: Token <ID> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<ID, %s> ",yytext);
-    symbolTable->insertSymbol(charPointerToString(yytext),"ID");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"ID");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
 
 [0-9]+[a-zA-Z_][a-zA-Z0-9_]* {
@@ -64,16 +67,18 @@ SingleQuot \'
     //integer constant
     fprintf(logFile,"Line no %d: Token <CONST_INT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_INT, %s> ",yytext);
-    symbolTable->insertSymbol(charPointerToString(yytext),"CONST_INT");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"CONST_INT");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
 
 {Float} {
     //floating constant
     fprintf(logFile,"Line no %d: Token <CONST_FLOAT> Lexeme %s found\n\n",lineCount,yytext);
     fprintf(tokenFile,"<CONST_FLOAT, %s> ",yytext);
-    symbolTable->insertSymbol(charPointerToString(yytext),"CONST_FLOAT");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(charPointerToString(yytext),"CONST_FLOAT");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%s already exists in the current scope table\n\n",yytext);
 }
 
 [0-9]*([.][0-9]*)([.][0-9]*)+ {
@@ -111,8 +116,9 @@ SingleQuot \'
     //character constant
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found  --> <CONST_CHAR, %c> \n\n",lineCount,yytext,yytext[1]);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",yytext[1]);
-    symbolTable->insertSymbol(string(1,yytext[1]),"CONST_CHAR");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(string(1,yytext[1]),"CONST_CHAR");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%c already exists in the current scope table\n\n",yytext[1]);
 }
 
 {SingleQuot} {
@@ -136,8 +142,9 @@ SingleQuot \'
     else if(yytext[2]=='\'')ch='\'';
     fprintf(logFile,"Line no %d: Token <CONST_CHAR> Lexeme %s found --> <CONST_CHAR, %c>\n\n",lineCount,yytext,ch);
     fprintf(tokenFile,"<CONST_CHAR, %c> ",ch);
-    symbolTable->insertSymbol(string(1,ch),"CONST_CHAR");
-    fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    bool isInserted=symbolTable->insertSymbol(string(1,ch),"CONST_CHAR");
+    if(isInserted)fprintf(logFile,"%s\n\n",symbolTable->printAllScopes().c_str());
+    else fprintf(logFile,"%c already exists in the current scope table\n\n",ch);
 }
 
 \'.(.)+\' {
@@ -324,6 +331,10 @@ SingleQuot \'
     fprintf(logFile,"Error at line no %d: Unrecognized character : %s \n\n",lineCount,yytext);
 }
 
+<<EOF>> { 
+    return 0;
+}
+
 \n {lineCount++;}
 %%
   
@@ -333,12 +344,16 @@ int main(int argc, char *argv[]){
     logFile=fopen(argv[2], "w");
     tokenFile=fopen(argv[3], "w");
 
-    symbolTable=new SymbolTable(7);
+    symbolTable=new SymbolTable(11);
 
     yylex();
     fprintf(logFile,"Total lines: %d\nTotal errors: %d",lineCount,errorCount);
     fclose(yyin);
     fclose(logFile);
     fclose(tokenFile);
+
+    delete symbolTable;
+    yy_delete_buffer( YY_CURRENT_BUFFER );
+
     return 0;
 }
