@@ -1,0 +1,6 @@
+Unfinished template a<ab<c<d>> detected
+
+Template a<aa> detected
+
+Invalid template t<tt<tt detected
+
